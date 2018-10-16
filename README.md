@@ -1,8 +1,6 @@
 # webminerpool 
 
-**Complete sources** for a monero (aeon) webminer. **Hard fork (v7) ready**.  Try it here:
-
-#### [Monero/Aeon/Turtlecoin/Electroneum example](https://webminerpool.com/)
+**Complete sources** for a Monero (cryptonight/cryptonight-lite) webminer. **Hard fork ready**.
 
 
 ###
@@ -12,11 +10,36 @@ _The server_ is written in **C#**, **optionally calling C**-routines to check ha
 _The client_ runs in the browser using javascript and webassembly. 
 **websockets** are used for the connection between the client and the server, **webassembly** to perform hash calculations, **web workers** for threads.
 
-# What is new? (Please Update!)
+Thanks to [nierdz](https://github.com/notgiven688/webminerpool/pull/62) there is a **docker** file available. See below.
 
-- **April 22, 2017** 
-	- All cryptonight and cryptonight-light based coins are supported in a single miner. [Stratum extension](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation) were implemented: The server now takes pool suggestions (algorithm and variant) into account. Defaults can be specified for each pool - that makes it possible to mine coins like Stellite, Turtlecoin,..
-	- Client reconnect time gets larger with failed attempts.
+# Will the hardfork (October 2018) be supported?
+
+Yes. Update to the current master branch and you are ready for the October 2018 hard fork.
+
+# What is new?
+
+- **September 27, 2018** 
+	- Added cryptonight v2. Hard fork ready! (**client-side** / **server-side**).
+
+- **June 15, 2018** 
+	- Support for blocks with more than 2^8 transactions. (**client-side** / **server-side**).
+
+- **May 21, 2018** 
+	- Support for multiple open tabs. Only one tab is constantly mining if several tabs/browser windows are open. (**client-side**).
+
+- **May 6, 2018** 
+	- Check if webasm is available. Please update the script. (**client-side**).
+
+- **May 5, 2018** 
+	- Support for multiple websocket servers in the client script (load-distribution).
+
+- **April 26, 2018** 
+	- A further improvement to fully support the [extended stratum protocol](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation)  (**server-side**).
+	- A simple json config-file holding all available pools (**server-side**).
+
+- **April 22, 2018** 
+	- All cryptonight and cryptonight-light based coins are supported in a single miner. [Stratum extension](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#mining-algorithm-negotiation) were implemented: The server now takes pool suggestions (algorithm and variant) into account. Defaults can be specified for each pool - that makes it possible to mine coins like Stellite, Turtlecoin,.. (**client/server-side**)
+	- Client reconnect time gets larger with failed attempts. (**client-side**)
 
 # Repository Content
 
@@ -25,24 +48,6 @@ _The client_ runs in the browser using javascript and webassembly.
 The SDK directory contains all client side mining scripts which allow mining in the browser.
 
 #### Minimal working example
-
-```html
-<!DOCTYPE html>
-<html>
-<body>
-
-<script src="https://webminerpool.com/webmr.js"></script>
-<!-- for aeon use: https://webminerpool.com/aeon/webmr.js -->
-
-<script>
-	startMining("minexmr.com","49kkH7rdoKyFsb1kYPKjCYiR2xy1XdnJNAY1e7XerwQFb57XQaRP7Npfk5xm1MezGn2yRBz6FWtGCFVKnzNTwSGJ3ZrLtHU"); 
-</script>
-
-</body>
-</html>
-```
-
-In this example the webminerpool.com server is used. A dynamic fee (about 4%) is used to cover hosting costs. You can also connect to your own server by altering the server variable in the script itself or using for example
 
 ```html
 <script src="webmr.js"></script>
@@ -138,15 +143,34 @@ should change this limit if you want to have more connections.
 
 ### hash_cn
 
-The monero/aeon cryptonight hashing functions in C-code. With simple Makefiles (use the "make" command to compile) for use with gcc and emcc - the [emscripten](https://github.com/kripken/emscripten) webassembly compiler. *libhash* should be compiled so that the server can check hashes calculated by the user.
+The cryptonight hashing functions in C-code. With simple Makefiles (use the "make" command to compile) for use with gcc and emcc - the [emscripten](https://github.com/kripken/emscripten) webassembly compiler. *libhash* should be compiled so that the server can check hashes calculated by the user.
 
-# ToDo
+# Dockerization
 
-Refactoring. Documentation.
+Find the original pull request with instructions by nierdz [here](https://github.com/notgiven688/webminerpool/pull/62).
 
-# Contact
+Added Dockerfile and entrypoint.sh.
+Inside entrypoint.sh, a certificate is installed so you need to provide a domain name during docker run. The certificate is automatically renewed using a cronjob.
 
-webminerpool@protonmail.com
+```bash
+cd webminerpool
+docker build -t webminerpool .
+```
+
+To run it: 
+
+```bash
+docker run -d -p 80:80 -p 8181:8181 -e DOMAIN=mydomain.com webminerpool
+```
+You absolutely need to set a domain name.
+The 80:80 bind is used to obtain a certificate.
+The 8181:8181 bind is used for server itself.
+
+If you want to bind these ports to a specific IP, you can do this:
+
+```bash
+docker run -d -p xx.xx.xx.xx:80:80 -p xx.xx.xx.xx:8181:8181 -e DOMAIN=mydomain.com webminerpool
+```
 
 # Developer Donations
 

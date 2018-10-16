@@ -96,18 +96,7 @@ namespace Server {
 
         private static bool libHashAvailable = false;
 
-        private struct PoolInfo {
-            public int Port;
-            public string Url;
-            public string EmptyPassword; // some pools require a non-empty password
-
-            public string DefaultAlgorithm;
-            public int DefaultVariant;
-
-            public PoolInfo (string url, int port, string emptypw = "", string algo = "cn", int variant = -1) { Port = port; Url = url; EmptyPassword = emptypw; DefaultAlgorithm = algo; DefaultVariant = variant; }
-        }
-
-        private static Dictionary<string, PoolInfo> PoolPool = new Dictionary<string, PoolInfo> ();
+		private static PoolList PoolList;
 
         // time to connect to a pool in seconds 
         private const int GraceConnectionTime = 16;
@@ -136,7 +125,6 @@ namespace Server {
         private static int Heartbeats = 0;
         private static int HashesCheckedThisHeartbeat = 0;
 
-        private static string jsonPools = "";
         private static long totalHashes = 0;
         private static long totalDevHashes = 0;
         private static long exceptionCounter = 0;
@@ -156,81 +144,6 @@ namespace Server {
         private static Job devJob = new Job ();
 
         static Client ourself;
-
-        private static void FillPoolPool () {
-            PoolPool.Clear ();
-
-            // MONERO !
-            PoolPool.Add ("xmrpool.eu", new PoolInfo ("xmrpool.eu", 3333));
-            PoolPool.Add ("moneropool.com", new PoolInfo ("mine.moneropool.com", 3333));
-            PoolPool.Add ("monero.crypto-pool.fr", new PoolInfo ("xmr.crypto-pool.fr", 3333));
-            PoolPool.Add ("monerohash.com", new PoolInfo ("monerohash.com", 3333));
-            PoolPool.Add ("minexmr.com", new PoolInfo ("pool.minexmr.com", 4444));
-            PoolPool.Add ("usxmrpool.com", new PoolInfo ("pool.usxmrpool.com", 3333, "x"));
-            PoolPool.Add ("supportxmr.com", new PoolInfo ("pool.supportxmr.com", 5555, "x"));
-            PoolPool.Add ("moneroocean.stream:100", new PoolInfo ("gulf.moneroocean.stream", 80, "x"));
-            PoolPool.Add ("moneroocean.stream", new PoolInfo ("gulf.moneroocean.stream", 10001, "x"));
-            PoolPool.Add ("poolmining.org", new PoolInfo ("xmr.poolmining.org", 3032, "x"));
-            PoolPool.Add ("minemonero.pro", new PoolInfo ("pool.minemonero.pro", 3333, "x"));
-            PoolPool.Add ("xmr.prohash.net", new PoolInfo ("xmr.prohash.net", 1111));
-            PoolPool.Add ("minercircle.com", new PoolInfo ("xmr.minercircle.com", 3333));
-            PoolPool.Add ("xmr.nanopool.org", new PoolInfo ("xmr-eu1.nanopool.org", 14444, "x"));
-            PoolPool.Add ("xmrminerpro.com", new PoolInfo ("xmrminerpro.com", 3333, "x"));
-            PoolPool.Add ("clawde.xyz", new PoolInfo ("clawde.xyz", 3333, "x"));
-            PoolPool.Add ("dwarfpool.com", new PoolInfo ("xmr-eu.dwarfpool.com", 8005));
-            PoolPool.Add ("xmrpool.net", new PoolInfo ("mine.xmrpool.net", 3333, "x"));
-            PoolPool.Add ("monero.hashvault.pro", new PoolInfo ("pool.monero.hashvault.pro", 5555, "x"));
-            PoolPool.Add ("osiamining.com", new PoolInfo ("osiamining.com", 4545, ""));
-            PoolPool.Add ("killallasics", new PoolInfo ("killallasics.moneroworld.com", 3333));
-            PoolPool.Add ("arhash.xyz", new PoolInfo ("arhash.xyz", 3333, "x"));
-
-            // AEON
-            PoolPool.Add ("aeon-pool.com", new PoolInfo ("mine.aeon-pool.com", 5555, "", "cn-lite", -1));
-            PoolPool.Add ("minereasy.com", new PoolInfo ("aeon.minereasy.com", 3333, "", "cn-lite", -1));
-            PoolPool.Add ("aeon.sumominer.com", new PoolInfo ("aeon.sumominer.com", 3333, "", "cn-lite", -1));
-            PoolPool.Add ("aeon.rupool.tk", new PoolInfo ("aeon.rupool.tk", 4444, "", "cn-lite", -1));
-            PoolPool.Add ("aeon.hashvault.pro", new PoolInfo ("pool.aeon.hashvault.pro", 3333, "x", "cn-lite", -1));
-            PoolPool.Add ("aeon.n-engine.com", new PoolInfo ("aeon.n-engine.com", 7333, "", "cn-lite", -1));
-            PoolPool.Add ("aeonpool.xyz", new PoolInfo ("mine.aeonpool.xyz", 3333, "", "cn-lite", -1));
-            PoolPool.Add ("aeonpool.dreamitsystems.com", new PoolInfo ("aeonpool.dreamitsystems.com", 13333, "x", "cn-lite", -1));
-            PoolPool.Add ("aeonminingpool.com", new PoolInfo ("pool.aeonminingpool.com", 3333, "x", "cn-lite", -1));
-            PoolPool.Add ("aeonhash.com", new PoolInfo ("pool.aeonhash.com", 3333, "", "cn-lite", -1));
-            PoolPool.Add ("durinsmine.com", new PoolInfo ("mine.durinsmine.com", 3333, "x", "cn-lite", -1));
-            PoolPool.Add ("aeon.uax.io", new PoolInfo ("mine.uax.io", 4446, "", "cn-lite", -1));
-            PoolPool.Add ("aeon-pool.sytes.net", new PoolInfo ("aeon-pool.sytes.net", 3333, "", "cn-lite", -1));
-            PoolPool.Add ("aeonpool.net", new PoolInfo ("pool.aeonpool.net", 3333, "x", "cn-lite", -1));
-            PoolPool.Add ("supportaeon.com", new PoolInfo ("pool.supportaeon.com", 3333, "x", "cn-lite", -1));
-            PoolPool.Add ("pooltupi.com", new PoolInfo ("pooltupi.com", 8080, "x", "cn-lite", -1));
-            PoolPool.Add ("aeon.semipool.com", new PoolInfo ("pool.aeon.semipool.com", 3333, "x", "cn-lite", -1));
-
-            // TURTLE  - back again!
-            PoolPool.Add ("slowandsteady.fun", new PoolInfo ("slowandsteady.fun", 3333, "", "cn-lite", 1));
-            PoolPool.Add ("trtl.flashpool.club", new PoolInfo ("trtl.flashpool.club", 3333, "", "cn-lite", 1));
-
-            // ELECTRONEUM
-            PoolPool.Add ("etn.poolmining.org", new PoolInfo ("etn.poolmining.org", 3102));
-            PoolPool.Add ("etn.nanopool.org", new PoolInfo ("etn-eu1.nanopool.org", 13333, "x"));
-            PoolPool.Add ("etn.hashvault.pro", new PoolInfo ("pool.electroneum.hashvault.pro", 80, "x"));
-
-            // SUMOKOIN - cn-heavy not supported. bye bye sumokoin
-            // PoolPool.Add ("sumokoin.com", new PoolInfo ("pool.sumokoin.com", 3333));
-            // PoolPool.Add ("sumokoin.hashvault.pro", new PoolInfo ("pool.sumokoin.hashvault.pro", 3333, "x"));
-            // PoolPool.Add ("sumopool.sonofatech.com", new PoolInfo ("sumopool.sonofatech.com", 3333));
-            // PoolPool.Add ("sumo.bohemianpool.com", new PoolInfo ("sumo.bohemianpool.com", 4444, "x"));
-            // PoolPool.Add ("pool.sumokoin.ch", new PoolInfo ("pool.sumokoin.ch", 4444));
-
-            int counter = 0;
-
-            jsonPools = "{\"identifier\":\"" + "poolinfo";
-
-            foreach (var pool in PoolPool) {
-                counter++;
-                jsonPools += "\",\"pool" + counter.ToString () + "\":\"" + pool.Key;
-            }
-
-            jsonPools += "\"}\n";
-
-        }
 
         private static UInt32 HexToUInt32 (String hex) {
             int NumberChars = hex.Length;
@@ -316,6 +229,33 @@ namespace Server {
             }
         }
 
+        private static bool IsCompatible(string blob, int variant, int clientVersion)
+        {
+            // clientVersion < 5 is not allowed to connect anymore.
+            // clientVersion 5 does support variant 0 and 1
+            // clientVersion 6 does support 0,1 and >1
+            // blobVersion7 = cn1, blobVersionX = cn2 if X > 7
+
+            if (clientVersion > 5) return true;
+            else
+            {
+                if (variant == -1)
+                {
+                    bool iscn2 = false;
+                    try { iscn2 = (HexToUInt32(blob.Substring(0, 2) + "000000") > 7); } catch { }
+                    if (iscn2) return false;
+                }
+                else if (variant > 1) 
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+
+        }
+
         private static void PoolReceiveCallback (Client client, JsonData msg, CcHashset<string> hashset) {
             string jobId = Guid.NewGuid ().ToString ("N");
 
@@ -323,14 +263,16 @@ namespace Server {
 
             // Todo: This can be done easier/nicer.
 
-            JobInfo ji = new JobInfo ();
-            ji.JobId = jobId;
-            ji.Blob = msg["blob"].GetString ();
-            ji.Target = msg["target"].GetString ();
-            ji.InnerId = msg["job_id"].GetString ();
-            ji.Algo = msg["algo"].GetString ();
-            ji.Solved = hashset;
-            ji.DevJob = (client == ourself);
+            JobInfo ji = new JobInfo
+            {
+                JobId = jobId,
+                Blob = msg["blob"].GetString(),
+                Target = msg["target"].GetString(),
+                InnerId = msg["job_id"].GetString(),
+                Algo = msg["algo"].GetString(),
+                Solved = hashset,
+                DevJob = (client == ourself)
+            };
 
             if (!int.TryParse (msg["variant"].GetString (), out ji.Variant)) { ji.Variant = -1; }
 
@@ -345,18 +287,11 @@ namespace Server {
                 devJob.Target = ji.Target;
                 devJob.Variant = ji.Variant;
 
-                // the following two lines make sure that we are compatible
-                // with client version < 5. Can be removed in the future.
-                bool isv7 = false;
-                try { isv7 = (HexToUInt32 (ji.Blob.Substring (0, 2) + "000000") > 6); } catch { }
-
                 List<Client> slavelist = new List<Client> (slaves.Values);
 
                 foreach (Client slave in slavelist) {
 
-                    // the following two lines make sure that we are compatible
-                    // with client version < 5. Can be removed in the future.
-                    bool compatible = (slave.Version > 4) || (isv7);
+                    bool compatible = IsCompatible(devJob.Blob, devJob.Variant, slave.Version);
                     if (!compatible) continue;
 
                     string newtarget;
@@ -396,11 +331,7 @@ namespace Server {
 
                     if (((DateTime.Now - devJob.Age).TotalSeconds < TimeDevJobsAreOld)) {
 
-                        // the following three lines make sure that we are compatible
-                        // with client version < 5. Can be removed in the future.
-                        bool isv7 = false;
-                        try { isv7 = (HexToUInt32 (devJob.Blob.Substring (0, 2) + "000000") > 6); } catch { }
-                        bool compatible = (client.Version > 4) || (isv7);
+                        bool compatible = IsCompatible(devJob.Blob, devJob.Variant, client.Version);
 
                         if (compatible) {
                             // okay, do not send devjob.Target, but
@@ -432,6 +363,10 @@ namespace Server {
                 }
 
                 if (!tookdev) {
+
+                    bool compatible = IsCompatible(ji.Blob, ji.Variant, client.Version);
+                    if (!compatible) return;
+
 
                     forward = "{\"identifier\":\"" + "job" +
                         "\",\"job_id\":\"" + jobId +
@@ -471,7 +406,7 @@ namespace Server {
             try { client.WebSocket.Close (); } catch { }
 
             if (client.PoolConnection != null)
-                PoolConnectionFactory.Close (client.PoolConnection, client);
+                PoolConnectionFactory.Close (client);
         }
 
         public static void DisconnectClient (Client client, string reason) {
@@ -497,34 +432,34 @@ namespace Server {
             DisconnectClient (client, reason);
         }
 
-        private static void CreateOurself () {
-            ourself = new Client ();
+        private static void CreateOurself()
+        {
+            ourself = new Client();
 
             ourself.Login = DevDonation.DevAddress;
             ourself.Pool = DevDonation.DevPoolUrl;
             ourself.Created = ourself.LastPoolJobTime = DateTime.Now;
             ourself.Password = DevDonation.DevPoolPwd;
-            ourself.WebSocket = new EmptyWebsocket ();
+            ourself.WebSocket = new EmptyWebsocket();
 
-            clients.TryAdd (Guid.Empty, ourself);
 
-            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection (ourself,
+            clients.TryAdd(Guid.Empty, ourself);
+
+            ourself.PoolConnection = PoolConnectionFactory.CreatePoolConnection(ourself,
                 DevDonation.DevPoolUrl, DevDonation.DevPoolPort, DevDonation.DevAddress, DevDonation.DevPoolPwd);
 
             ourself.PoolConnection.DefaultAlgorithm = "cn";
             ourself.PoolConnection.DefaultVariant = -1;
         }
 
-        private static bool CheckLibHash (out Exception ex) {
 
-            // just check if we can successfully calculate a cn-hash.
-            string testStr = new string ('1', 151) + '3';
+        private static bool CheckLibHash (string input, string expected, 
+                                          int lite, int variant, out Exception ex) {
+
             string hashedResult = string.Empty;
 
-            IntPtr pStr;
-
             try {
-                pStr = hash_cn (testStr, 0, 1);
+                IntPtr pStr = hash_cn (input, lite, variant);
                 hashedResult = Marshal.PtrToStringAnsi (pStr);
                 hash_free (pStr);
             } catch (Exception e) {
@@ -532,23 +467,7 @@ namespace Server {
                 return false;
             }
 
-            // test -> cryptonight v1
-            if (hashedResult.Substring (0, 11) != "843ae6fc006") {
-                ex = new Exception ("Hash function returned wrong hash");
-                return false;
-            }
-
-            try {
-                pStr = hash_cn (testStr, 1, 0);
-                hashedResult = Marshal.PtrToStringAnsi (pStr);
-                hash_free (pStr);
-            } catch (Exception e) {
-                ex = e;
-                return false;
-            }
-            
-			// test -> cryptonight lite v0
-            if (hashedResult.Substring (0, 11) != "f41e2a4e00e") {
+            if (hashedResult != expected) {
                 ex = new Exception ("Hash function returned wrong hash");
                 return false;
             }
@@ -558,10 +477,10 @@ namespace Server {
         }
 
         private static void ExcessiveHashTest () {
-            Parallel.For (0, 10000, (i) => {
+            Parallel.For (0, 100, (i) => {
                 string testStr = new string ('1', 151) + '3';
 
-                IntPtr ptr = hash_cn (testStr, 0, 1);
+                IntPtr ptr = hash_cn (testStr, 1, 0);
                 string str = Marshal.PtrToStringAnsi (ptr);
                 hash_free (ptr);
 
@@ -588,9 +507,49 @@ namespace Server {
                 Console.WriteLine ();
             });
 
-            Exception exception = null;
+			try {
+				PoolList = PoolList.LoadFromFile ("pools.json");
+			}
+			catch(Exception ex) {
+				CConsole.ColorAlert (() => Console.WriteLine("Could not load pool list from pools.json: {0}", ex.Message));
+				return;
+			}
 
-            libHashAvailable = CheckLibHash (out exception);
+			CConsole.ColorInfo (() => Console.WriteLine ("Loaded {0} pools from pools.json.", PoolList.Count));
+
+
+            Exception exception = null;
+            libHashAvailable = true;
+
+            // cn
+            libHashAvailable &= CheckLibHash ("6465206f6d6e69627573206475626974616e64756d",
+                                              "2f8e3df40bd11f9ac90c743ca8e32bb391da4fb98612aa3b6cdc639ee00b31f5",
+                                              0, 0, out exception);
+
+            // cn_v1
+            libHashAvailable &= CheckLibHash("38274c97c45a172cfc97679870422e3a1ab0784960c60514d816271415c306ee3a3ed1a77e31f6a885c3cb",
+                                             "ed082e49dbd5bbe34a3726a0d1dad981146062b39d36d62c71eb1ed8ab49459b",
+                                              0, 1, out exception);
+
+            // cn_v2
+            libHashAvailable &= CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
+											 "353fdc068fd47b03c04b9431e005e00b68c2168a3cc7335c8b9b308156591a4f",
+                                              0, 2, out exception);
+
+            // cn_lite
+            libHashAvailable &= CheckLibHash("6465206f6d6e69627573206475626974616e64756d",
+                                             "1b73647a792df8724ce28fddc1e4b6f348dc39e6aa47c434fe400cec98ec2b91",
+                                              1, 0, out exception);
+
+            // cn_lite_v1
+            libHashAvailable &= CheckLibHash("38274c97c45a172cfc97679870422e3a1ab0784960c60514d816271415c306ee3a3ed1a77e31f6a885c3cb",
+                                             "4e785376ed2733262d83cc25321a9d0003f5395315de919acf1b97f0a84fbd2d",
+                                              1, 1, out exception);
+
+            // cn_lite_v2 (speculative)
+            libHashAvailable &= CheckLibHash("5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374",
+											 "49c95241af3bd74e78f473936ac36214bbc386a36869f9406b5da16aa0ee4b06",
+                                              1, 2, out exception);
 
             if (!libHashAvailable) CConsole.ColorWarning (() =>
                 Console.WriteLine ("libhash.so is not available. Checking user submitted hashes disabled.")
@@ -598,7 +557,6 @@ namespace Server {
 
             PoolConnectionFactory.RegisterCallbacks (PoolReceiveCallback, PoolErrorCallback, PoolDisconnectCallback);
 
-            FillPoolPool ();
 
             if (File.Exists ("statistics.dat")) {
 
@@ -634,10 +592,12 @@ namespace Server {
                     foreach (string line in lines) {
                         string[] logindata = line.Split (new string[] { SEP }, StringSplitOptions.None);
 
-                        Credentials cred = new Credentials ();
-                        cred.Pool = logindata[1];
-                        cred.Login = logindata[2];
-                        cred.Password = logindata[3];
+                        Credentials cred = new Credentials
+                        {
+                            Pool = logindata[1],
+                            Login = logindata[2],
+                            Password = logindata[3]
+                        };
 
                         loginids.TryAdd (logindata[0], cred);
                     }
@@ -660,11 +620,7 @@ namespace Server {
 
             WebSocketServer server;
 
-#if (AEON)
-            string localAddr = (certAvailable ? "wss://" : "ws://") + "0.0.0.0:8282";
-#else
             string localAddr = (certAvailable ? "wss://" : "ws://") + "0.0.0.0:8181";
-#endif
 
             server = new WebSocketServer (localAddr);
 
@@ -779,6 +735,11 @@ namespace Server {
                         }
 
                         if (client.Version < 5) {
+                            DisconnectClient (client, "Client version too old.");
+                            return;
+                        }
+
+                        if (client.Version < 6) {
                             CConsole.ColorWarning (() => Console.WriteLine ("Warning: Outdated client connected. Make sure to update the clients"));
                         }
 
@@ -829,7 +790,7 @@ namespace Server {
 
                         PoolInfo pi;
 
-                        if (!PoolPool.TryGetValue (client.Pool, out pi)) {
+						if (!PoolList.TryGetPool(client.Pool, out pi)) {
                             // we dont have that pool?
                             DisconnectClient (client, "pool not known");
                             return;
@@ -971,7 +932,7 @@ namespace Server {
                     } else if (identifier == "poolinfo") {
                         if (!client.GotPoolInfo) {
                             client.GotPoolInfo = true;
-                            client.WebSocket.Send (jsonPools);
+							client.WebSocket.Send (PoolList.JsonPools);
                         }
 
                     } else
@@ -1012,7 +973,7 @@ namespace Server {
 
                         PoolInfo pi;
 
-                        if (!PoolPool.TryGetValue (crdts.Pool, out pi)) {
+						if (!PoolList.TryGetPool (crdts.Pool, out pi)) {
                             // we dont have that pool?
                             DisconnectClient (client, "Pool not known!");
                             return;
@@ -1122,12 +1083,12 @@ namespace Server {
                     }
 
                     CConsole.ColorInfo (() =>
-                        Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3}k; speed total: {4}kH/s",
+                        Console.WriteLine ("[{0}] heartbeat; connections client/pool: {1}/{2}; jobqueue: {3}k; speed: {4}kH/s",
                             DateTime.Now.ToString (),
                             clients.Count,
                             PoolConnectionFactory.Connections.Count,
                             ((double) jobQueue.Count / 1000.0d).ToString ("F1"),
-                            ((double) totalSpeed / 1000.0d).ToString ("F2")));
+                            ((double) totalSpeed / 1000.0d).ToString ("F1")));
 
                     while (jobQueue.Count > JobCacheSize) {
                         string deq;
@@ -1167,7 +1128,7 @@ namespace Server {
                     } else {
                         // we removed ourself because we got disconnected from the pool
                         // make us alive again!
-                        if (clients.Count > 0 && DevDonation.DonationLevel > double.Epsilon) {
+                        if (clients.Count > 4 && DevDonation.DonationLevel > double.Epsilon) {
                             CConsole.ColorWarning (() =>
                                 Console.WriteLine ("disconnected from dev pool. trying to reconnect."));
                             devJob = new Job ();

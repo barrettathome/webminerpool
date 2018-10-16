@@ -35,7 +35,6 @@
     <OutputPath>bin\Release_Server</OutputPath>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
-    <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
   </PropertyGroup>
   <ItemGroup>
@@ -49,6 +48,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="DevDonation.cs" />
     <Compile Include="PoolConnection.cs" />
+    <Compile Include="PoolList.cs" />
     <Compile Include="DataStructures.cs" />
     <Compile Include="Fleck\BufferPool.cs" />
     <Compile Include="Fleck\ConnectionNotAvailableException.cs" />
@@ -85,6 +85,12 @@
     <Compile Include="Helper.cs" />
     <Compile Include="Random2.cs" />
     <Compile Include="AlgorithmHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\pools.json">
+      <Link>pools.json</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
